@@ -106,5 +106,5 @@ GitHub.sublime-settings
 .history
 
 # Excel
-.xlsx
-.xls
+*.xlsx
+*.xls
