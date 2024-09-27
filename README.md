@@ -2,24 +2,27 @@ Ecco il file `README.md` completamente in inglese:
 
 # LUT Excel Transferer
 
-## Python Version
+## Overview
 
-- Python 3.10.0
+This script allows you to copy specific column values from one Excel sheet to another, based on matching identifier columns. It is designed to handle large datasets and provides feedback through progress bars and colored messages.
 
-## Installing required packages
+## Requirements
 
-Before running the script, make sure to install the required packages using the following command:
+- Python 3.x
+- `openpyxl` library
+
+To install the required packages, run:
 
 ```bash
-pip install -r .\requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Usage
 
-For information on how to use the script and the available parameters, run:
+The script can be executed via the command line with several arguments. Here is the general format:
 
 ```bash
-python .\lut_excel_transferer.py -h
+python lut_excel_transferer.py -s <source_filename> -d <dest_filename> -si <source_identifiers> -di <dest_identifiers> -sc <source_columns_to_copy> -sp <dest_columns_to_paste> [-so <source_offset>] [-sl <source_limit>] [-o <output_filename>] [-od <output_dir>]
 ```
 
 ## File Preparation
@@ -31,25 +34,11 @@ Before running the script, place the Excel files in the same folder as `lut_exce
 
 ⚠️ Note: The files must have a **single row header**. If they have more or fewer header rows, the script will need to be manually modified (for now).
 
-## Example Usage
+### Notes
 
-```bash
-python .\lut_excel_transferer.py -s 'source.xlsx' 'dest.xlsx' -si 'NAME' 'LAST_NAME' -di 'CLIENT_NAME' 'CLIENT_LASTNAME' -sc 'ID' -sp 'CLIENT_ID'
-```
-
-### Explanation
-
-This script compares rows from two Excel files:
-
-1. **Source file**: `source.xlsx`
-2. **Destination file**: `dest.xlsx`
-
-The script searches for rows where:
-
-- The `NAME` column from the source file matches the `CLIENT_NAME` column from the destination file.
-- The `LAST_NAME` column from the source file matches the `CLIENT_LASTNAME` column from the destination file.
-
-Then, it copies the value from the `ID` column of the source file to the `CLIENT_ID` column of the destination file for the matching rows.
+- The source and destination files must have a header row.
+- Matching columns must be provided in the same order for both source and destination files.
+- The script provides real-time progress updates and uses colored messages to indicate success, warnings, and errors.
 
 ### Required Parameters
 - `-s` or `--source-filename`: The source Excel file (default is source.xlsx).
@@ -65,3 +54,20 @@ Then, it copies the value from the `ID` column of the source file to the `CLIENT
 - `-o` or `--output-filename`: The name of the output file (default is output.xlsx).
 - `-od` or `--output-dir`: The directory to save the output file (default is Output).
 - `-deb` or `--debug`: Enable debug messages for more detailed logging.
+
+### Example
+
+To transfer values from one Excel file to another where specific columns match:
+
+```bash
+python lut_excel_transferer.py -s 'source.xlsx' -d 'dest.xlsx' -si 'Date' 'Number' -di 'Date_Num' 'Number_ID' -sc 'Code' -sp 'Code_ID' -sl 1000
+```
+
+In this example:
+- The script matches rows where the `Date` and `Number` columns in `source.xlsx` match the `Date_Num` and `Number_ID` columns in `dest.xlsx`.
+- It copies the values from the `Code` column in the source sheet to the `Code_ID` column in the destination sheet.
+- Only the first 1000 rows of the source sheet are processed.
+
+### Output
+
+The results are saved in the `Output` directory (default) or any directory specified via `--output-dir`.
