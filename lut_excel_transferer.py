@@ -1,91 +1,13 @@
-import openpyxl
-import openpyxl.cell
-import openpyxl.workbook
-import openpyxl.worksheet
-import openpyxl.worksheet.worksheet
-import argparse
 import os
 import sys
+import argparse
+import openpyxl
+from openpyxl.workbook.workbook import Workbook
+from colored_message import ColoredMessage
+from progress_bar import ProgressBar
+from sheet_with_attributes import SheetWithAttributes
 
-################################################################################### CLASSES ###################################################################################
-
-class BColors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-class ColoredMessage:
-  def success(message):
-    return f'{BColors.OKGREEN}{message}{BColors.ENDC}'
-
-  def processing(message):
-    return f'{BColors.OKCYAN}{message}{BColors.ENDC}'
-
-  def error(message):
-    return f'{BColors.FAIL}{message}{BColors.ENDC}'
-
-  def warning(message):
-    return f'{BColors.WARNING}{message}{BColors.ENDC}'
-
-class ProgressBar:
-  def __init__(self, max_i):
-    self.max_i = max_i
-
-  def progress(self, i):
-    progress = int(100*i/self.max_i)
-    remaining = 100 - progress
-    self.progress_bar = f"[{ColoredMessage.success(progress*'#')}{ColoredMessage.processing(remaining*'-')}]"
-
-  def print(self):
-    print(self.progress_bar, end='\r', sep='')
-
-class SheetWithAttributes:
-  def __init__(self, filename: str, sheet: openpyxl.worksheet.worksheet.Worksheet, indexed_identifiers: dict[int, str], min_row: int = None, max_row: int = None, min_col: int = None, max_column: int = None):
-    self.filename = filename
-    self.sheet = sheet
-    self.min_row = min_row or 2
-    self.max_row = max_row or sheet.max_row
-    self.min_col = min_col or 1
-    self.max_column = max_column or sheet.max_column
-    self.identifiers = indexed_identifiers
-    self.col_indexes_per_title = self.get_col_indexes_per_title()
-    self.identifiers_indexes = self.get_identifiers_indexes()
-
-  def get_rows_generator(self):
-    return self.sheet.iter_rows(min_row=self.min_row, max_row=self.max_row, min_col=self.min_col, max_col=self.max_column)
-
-  def get_headers_generator(self):
-      return self.sheet.iter_cols(min_row=1, max_row=1, min_col=self.min_col, max_col=self.max_column)
-
-  def get_col_indexes_per_title(self):
-    sheet_cols_generator = self.get_headers_generator()
-    index_range = range(0, self.max_column - 1)
-    dict = {}
-    for col, i in zip(sheet_cols_generator, index_range):
-      if col[0].value in dict:
-        print(ColoredMessage.warning(f'Column \'{col[0].value}\' duplicated in \'{self.filename}\', using the first one'))
-        continue
-      dict[col[0].value] = i
-    return dict
-
-  def get_identifiers_indexes(self):
-    dict = {}
-    for identifier in self.identifiers.values():
-      if identifier in self.col_indexes_per_title:
-        dict[identifier] = self.col_indexes_per_title[identifier]
-      else:
-        raise NameError(ColoredMessage.error(f'Column \'{identifier}\' not found in \'{self.filename}\'')) from None
-    return dict
-
-################################################################################ FUNCTIONS ################################################################################
-
-def get_sheet_with_attributes_from_workbook(filename, wb: openpyxl.workbook.workbook.Workbook, sheet_index: int, identifiers: dict[int, str], min_row: int = None, max_row: int = None, min_col: int = None, max_col: int = None):
+def get_sheet_with_attributes_from_workbook(filename: str, wb: Workbook, sheet_index: int, identifiers: dict[int, str], min_row: int = None, max_row: int = None, min_col: int = None, max_col: int = None):
   sheetname = wb.sheetnames[sheet_index]
   sheet = wb[sheetname]
   return SheetWithAttributes(filename, sheet, identifiers, min_row, max_row, min_col, max_col)
@@ -128,28 +50,28 @@ def copy_cols_to_dest(source: SheetWithAttributes, dest: SheetWithAttributes, ro
     copy_col_to_dest(source, dest, row_corrispondence, to_copy_identifier, to_paste_identifier)
 
 def sheet_to_list_of_row_dicts(sheet: SheetWithAttributes):
-  rows_generator = sheet.sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column)
+  rows_generator = sheet.get_rows_generator()
   return [{identifier: row[i].value for identifier, i in sheet.identifiers_indexes.items()} for row in rows_generator]
 
-def write_results_to_sheet(source, dest, rows_corrispondences, source_to_copy_identifiers, dest_to_paste_identifiers):
+def write_results_to_sheet(source: SheetWithAttributes, dest: SheetWithAttributes, rows_corrispondences: dict[tuple[int, int]], source_to_copy_identifiers: dict[int, str], dest_to_paste_identifiers: dict[int, str]):
   progress_bar = ProgressBar(len(rows_corrispondences))
   for i, row_corrispondence in enumerate(rows_corrispondences):
     copy_cols_to_dest(source, dest, row_corrispondence, source_to_copy_identifiers, dest_to_paste_identifiers)
     progress_bar.progress(i)
     progress_bar.print()
 
-def loadWbOrRaise(filename):
+def loadWbOrRaise(filename: str):
   try:
     return openpyxl.load_workbook(filename)
   except FileNotFoundError:
     raise FileNotFoundError(ColoredMessage.error(f'File \'{filename}\' not found, check if the filename is correct and the file is placed in the script root folder')) from None
 
-def save_results(dest_wb, output_dir, output_filename):
+def save_results(dest_wb: Workbook, output_dir: str, output_filename: str):
   if not os.path.isdir(output_dir):
     os.mkdir(output_dir)
   dest_wb.save(os.path.join(output_dir, output_filename))
 
-def run_process(args):
+def run_process(args: argparse.Namespace):
   source_filename = args.source_filename
   dest_filename = args.dest_filename
   output_dir = args.output_dir
