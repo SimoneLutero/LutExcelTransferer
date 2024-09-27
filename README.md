@@ -1,5 +1,3 @@
-Ecco il file `README.md` completamente in inglese:
-
 # LUT Excel Transferer
 
 ## Overview
