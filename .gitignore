@@ -1,0 +1,83 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheeled/
+wheeled_packages/
+wheeled_extensions/
+wheeled_extensions.json
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script and it is
+#  not good to version control generated files.
+dist/
+build/
+
+# pip deletes these directories when the install fails
+wheeled_extensions/
+
+# Logs
+*.log
+*.tmp
+*.tmp~
+
+# Operating System
+.DS_Store
+.AppleSingle
+.LSOverride
+
+# Virtualenv
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+# Database
+*.db
+*.sqlite3
+
+# IPython
+.ipynb_checkpoints
+
+# Jupyter Notebook
+.nbextensions
+.jupyter
+
+# Excel
+.xlsx
+.xls
